@@ -3,12 +3,13 @@
 import xml.sax
 import re
 import urllib.parse
+from pprint import pprint
 
+import mutagen
 from mutagen import MutagenError
-from mutagen.aiff import AIFF
-from mutagen.mp3 import MP3
-from mutagen.wave import WAVE
+from mutagen.id3 import ID3
 
+ENDS_WITH_ORIGINAL_MIX = re.compile(r'^(.*?)\s*\(original mix\)$', re.I)
 
 class iTunesHandler(xml.sax.ContentHandler):
     def __init__(self):
@@ -33,10 +34,9 @@ class iTunesHandler(xml.sax.ContentHandler):
         self.currentTag = ""
         if self.inTrack:
             if tag == 'dict':
-                if re.match(r'^.*\(original mix\)$', self.trackName, flags=re.I):
+                if ENDS_WITH_ORIGINAL_MIX.match(self.trackName):
                     if self.trackLocation[0:8] == 'file:///':
                         filename = urllib.parse.unquote(self.trackLocation)[7:]
-                        print ("** %s" % filename)
                         updateTag(filename)
                 self.trackName = ""
                 self.trackLocation = ""
@@ -62,17 +62,22 @@ class iTunesHandler(xml.sax.ContentHandler):
 
 def updateTag(filename):
     try:
-        if re.match(r'^.*\.mp3', filename, re.I):
-            mp3 = MP3(filename)
-            print(mp3.tags.getall('TIT2'))
-        elif re.match(r'^.*\.aiff?', filename, re.I):
-            aiff = AIFF(filename)
-            print(aiff.tags.getall('TIT2'))
-        elif re.match(r'^.*\.wav', filename, re.I):
-            wav = WAVE(filename)
-            print(wav.tags.getall('TIT2'))
-        else:
-            print("!! Unsure what format %s is" % filename)
+        print("** Checking %s" % filename)
+        f = mutagen.File(filename)
+        metadata_title = f.get('TIT2')
+
+        if metadata_title is None:
+            print(".. No TIT2 in file.")
+            return
+
+        print("++ Found %s" % metadata_title.text[0])
+        m = ENDS_WITH_ORIGINAL_MIX.match(metadata_title.text[0])
+        fixed_metadata_title = m[1]
+        if metadata_title == fixed_metadata_title:
+            print(".. Metadata title '%s' already looks fine to me." % metadata_title)
+            return
+        id3 = ID3(filename)
+        print("++ ID3 version: {}".format(id3.version))
     except MutagenError:
         print("!! Could not read file")
     except AttributeError:
