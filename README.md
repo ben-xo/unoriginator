@@ -10,3 +10,7 @@ Usage
 2. . ./unoriginator/bin/activate
 3. pip install mutagen
 4. ./unoriginator.py
+
+Credits
+-------
+Copyright 2020 Ben XO https://github.com/ben-xo/unoriginator
