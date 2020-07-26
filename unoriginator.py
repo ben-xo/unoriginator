@@ -2,7 +2,7 @@
 
 import xml.sax
 import re
-
+import urllib.parse
 
 class iTunesHandler(xml.sax.ContentHandler):
     def __init__(self):
@@ -28,7 +28,8 @@ class iTunesHandler(xml.sax.ContentHandler):
         if self.inTrack:
             if tag == 'dict':
                 if re.match(r'^.*\(original mix\)$', self.trackName, flags=re.IGNORECASE):
-                    print(self.trackLocation)
+                    if self.trackLocation[0:8] == 'file:///':
+                        print(urllib.parse.unquote(self.trackLocation)[7:])
                 self.trackName = ""
                 self.trackLocation = ""
                 self.inTrack = False
