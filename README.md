@@ -11,6 +11,14 @@ Usage
 3. pip install mutagen
 4. ./unoriginator.py
 
+How to get iTunes to see the changes
+------------------------------------
+
+1. Make a Smart Playlist of "ends with (original mix)"
+2. Select all the tracks
+3. Get Song Info
+4. Change something minor, such as toggling the "Compilation of songs by different artists" flag
+
 Credits
 -------
 Copyright 2020 Ben XO https://github.com/ben-xo/unoriginator
