@@ -1,10 +1,10 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import xml.sax
 import re
 import urllib.parse
-from pprint import pprint
-
+import os
+import sys
 import mutagen
 from mutagen import MutagenError
 from mutagen.id3 import ID3, TIT2
@@ -120,7 +120,12 @@ if __name__ == "__main__":
     Handler = iTunesHandler()
     parser.setContentHandler(Handler)
 
-    parser.parse("/Volumes/MUSIC/iTunes/iTunes Library.xml")
+    if sys.argv[1] is None:
+        path = os.path.join(os.getenv("HOME"), "Music/iTunes/iTunes Library.xml")
+    else:
+        path = sys.argv[1]
+
+    parser.parse(path)
 
     print()
     print("Total iTunes entries parsed:  {}".format(total_itunes_entries))
