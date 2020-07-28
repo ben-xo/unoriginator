@@ -16,6 +16,7 @@ total_updated_files = 0
 total_itunes_entries = 0
 didnt_process = []
 
+
 class iTunesHandler(xml.sax.ContentHandler):
     def __init__(self):
         self.depth = 0
