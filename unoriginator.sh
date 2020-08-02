@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+SCRIPT_DIR=$( cd "$( dirname "$(readlink "${BASH_SOURCE[0]}")" )" && pwd )
 
 FIRST_INSTALL=""
 if [[ ! -d ~/.virtualenvs/unoriginator ]]; then
