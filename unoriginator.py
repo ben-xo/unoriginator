@@ -4,7 +4,6 @@ import xml.sax
 import re
 import urllib.parse
 import os
-import sys
 import argparse
 import mutagen
 from mutagen import MutagenError
