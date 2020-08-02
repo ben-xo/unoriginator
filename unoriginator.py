@@ -5,16 +5,18 @@ import re
 import urllib.parse
 import os
 import sys
+import argparse
 import mutagen
 from mutagen import MutagenError
 from mutagen.id3 import ID3, TIT2
 
-ENDS_WITH_ORIGINAL_MIX = re.compile(r'^(.*?)\s*\(original mix\)$', re.I)
+ENDS_WITH_ORIGINAL_MIX = re.compile(r'^(.*?)\s*(?:- original(?: mix)?|\(original(?: mix)?\))$', re.I)
 
 total_seen_files = 0
 total_updated_files = 0
 total_itunes_entries = 0
 didnt_process = []
+dry_run = False
 
 
 class iTunesHandler(xml.sax.ContentHandler):
@@ -44,7 +46,7 @@ class iTunesHandler(xml.sax.ContentHandler):
                 if ENDS_WITH_ORIGINAL_MIX.match(self.trackName):
                     if self.trackLocation[0:8] == 'file:///':
                         filename = urllib.parse.unquote(self.trackLocation)[7:]
-                        update_tag(filename)
+                        update_tag(filename, dry_run=dry_run)
                 self.trackName = ""
                 self.trackLocation = ""
                 self.inTrack = False
@@ -68,7 +70,7 @@ class iTunesHandler(xml.sax.ContentHandler):
                     self.trackLocation += content
 
 
-def update_tag(filename):
+def update_tag(filename, dry_run=False):
     global total_updated_files
     global total_seen_files
     global didnt_process
@@ -97,7 +99,8 @@ def update_tag(filename):
                 return
 
             f.tags.add(TIT2(text=[fixed_metadata_title]))
-            f.save()
+            if not dry_run:
+                f.save()
             total_updated_files += 1
             return
         else:
@@ -112,6 +115,20 @@ def update_tag(filename):
 
 
 if __name__ == "__main__":
+
+    default_path = os.path.join(os.getenv("HOME"), "Music/iTunes/iTunes Library.xml")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run", help="don't actually update the metadata, just say what would have been updated",
+                        action="store_true")
+    parser.add_argument("itunes_xml_file",
+                        help="Filename of the iTunes Music library. Defaults to {}".format(default_path),
+                        default=default_path, nargs='?')
+    args = parser.parse_args()
+    dry_run = args.dry_run
+    if dry_run:
+        print("** DRY RUN ONLY **")
+
     # create an XMLReader
     parser = xml.sax.make_parser()
     # turn off namepsaces
@@ -121,12 +138,11 @@ if __name__ == "__main__":
     Handler = iTunesHandler()
     parser.setContentHandler(Handler)
 
-    if sys.argv[1] is None:
-        path = os.path.join(os.getenv("HOME"), "Music/iTunes/iTunes Library.xml")
-    else:
-        path = sys.argv[1]
-
-    parser.parse(path)
+    try:
+        parser.parse(args.itunes_xml_file)
+    except ValueError:
+        print("Error reading file. Is that the right iTunes Library.xml file?")
+        exit(-1)
 
     print()
     print("Total iTunes entries parsed:  {}".format(total_itunes_entries))
