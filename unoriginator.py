@@ -19,6 +19,10 @@ dry_run = False
 
 
 class iTunesHandler(xml.sax.ContentHandler):
+    """
+    Stream parser for the iTunes XML file. Looks for music in the library which ends with some variation of
+    "Original Mix" and then calls update_tag() to remove the text from the file metadata.
+    """
     def __init__(self):
         self.depth = 0
         self.currentTag = ""
@@ -70,6 +74,14 @@ class iTunesHandler(xml.sax.ContentHandler):
 
 
 def update_tag(filename, dry_run=False):
+    """
+    Gives a filename, tries to read the file metadata using Mutagen. If it ends with some variation of (Original Mix),
+    removed the text and saves the metadata. (Some tracks in the metadata may have already had the text removed if
+    iTunes hasn't rescanned the library - these are skipped).
+    :param filename:
+    :param dry_run:
+    :return:
+    """
     global total_updated_files
     global total_seen_files
     global didnt_process
