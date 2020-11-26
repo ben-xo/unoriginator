@@ -31,9 +31,22 @@ OR
 
 3. Follow the guide [here](https://apple.stackexchange.com/questions/77193/is-there-a-way-to-force-itunes-11-to-update-tags/103445) to create a 'Refresh' menu option in iTunes (Mac only)
 
+Pre Catalina:
 > Put the following into a file named `/Library/iTunes/Scripts/Refresh.scpt`
 > ```
 > tell application "iTunes"
+>  repeat with aTrack in selection
+>    try
+>        refresh aTrack
+>    end try
+>  end repeat
+> end tell
+> ```
+
+Catalina or later:
+> Put the following into a file named `/Library/Music/Scripts/Refresh.scpt`
+> ```
+> tell application "Music"
 >  repeat with aTrack in selection
 >    try
 >        refresh aTrack
